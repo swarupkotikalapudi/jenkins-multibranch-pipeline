@@ -2,9 +2,6 @@ def getTimestamp() {
     def now = new Date()
     return now.format("yyyyMMdd_HHmm", TimeZone.getTimeZone('UTC'))
 }
-def getGitBranchName() {
-    return "FAB-319"
-}
 
 pipeline {
  options {
@@ -17,9 +14,6 @@ pipeline {
  }
  tools {
     jdk 'JDK_1.8'
- }
- environment {
-    GIT_BRANCH_NAME = "${getGitBranchName()}"
  }
  
  // trigger this jenkins job every Firday 7 PM UTC time
@@ -37,7 +31,7 @@ pipeline {
     stage('checkout fabricmci') {
       steps {
         withCredentials([gitUsernamePassword(credentialsId: 'source:FabricmciGSA', gitToolName: 'Default')]) {
-          sh "git clone -b $GIT_BRANCH_NAME https://source.developers.google.com/p/fabricmanager/r/podm-common"
+          sh "git clone -b $BRANCH_NAME https://source.developers.google.com/p/fabricmanager/r/podm-common"
           echo "Branch name is: ${BRANCH_NAME}"
         }
       }
@@ -84,26 +78,26 @@ pipeline {
     always {
       echo "Build finished.. with status : ${currentBuild.currentResult}"
     }
-    //success {
-    //  echo "it is a success"
-    //    script {
-    //      slackSend (
-    //        color: 'good',
-    //        channel: '#jenkins-ci-builds',
-    //        message: "Job ${env.JOB_NAME}\nbuild ${env.BUILD_NUMBER}\nMore info at: ${env.BUILD_URL}"
-    //        )
-    //    }
-    //}
-    //failure {
-      //echo "it is a failure"
-        //script {
-          //slackSend (
-            //color: 'danger',
-            //channel: '#jenkins-ci-builds',
-            //message: "${currentBuild.currentResult} Job ${env.JOB_NAME}\nbuild ${env.BUILD_NUMBER}\nMore info at: ${env.BUILD_URL}"
-            //)
-        //}
-    //}
+    success {
+      echo "it is a success"
+        script {
+          slackSend (
+            color: 'good',
+            channel: '#jenkins-ci-builds',
+            message: "Job ${env.JOB_NAME}\nbuild ${env.BUILD_NUMBER}\nMore info at: ${env.BUILD_URL}"
+            )
+        }
+    }
+    failure {
+      echo "it is a failure"
+        script {
+          slackSend (
+            color: 'danger',
+            channel: '#jenkins-ci-builds',
+            message: "${currentBuild.currentResult} Job ${env.JOB_NAME}\nbuild ${env.BUILD_NUMBER}\nMore info at: ${env.BUILD_URL}"
+            )
+        }
+    }
  }
 }
 
